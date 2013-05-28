@@ -110,8 +110,10 @@ public class Instance {
       }
    }
 
-   private void parsePossibleTimeslots() {
-      
+   private void parsePossibleTimeslots() throws IOException {
+      for (Event event: getEvents()) {
+         event.parsePossibleTimeslots(this);
+      }
    }
 
    public Collection<Event> getEvents() {
