@@ -1,4 +1,4 @@
-package de.rwthaachen.hyperhallsolver;
+package de.rwthaachen.hyperhallsolver.model;
 
 import java.io.IOException;
 import java.util.Collection;

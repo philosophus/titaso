@@ -1,5 +1,6 @@
 package de.rwthaachen.hyperhallsolver;
 
+import de.rwthaachen.hyperhallsolver.model.Instance;
 import java.io.File;
 import java.io.IOException;
 import junit.framework.TestCase;

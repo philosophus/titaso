@@ -1,11 +1,11 @@
-package de.rwthaachen.hyperhallsolver;
+package de.rwthaachen.hyperhallsolver.model;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -18,13 +18,13 @@ public class Instance {
     * Contains the entire raw JSON object data.
     */
    private Map<String, Object> rawInstanceData;
-
    private Map<String, Event> events;
-
    private Map<String, Room> rooms;
-
    private Map<String, Timeslot> timeslots;
+   private Map<String, TimeConflict> strictTimeConflicts;
+   private Map<String, TimeConflict> softTimeConflicts;
 
+//   private Map<Event, TimeConflict> conflictsOfEvent;
    public Instance(Map<String, Object> rawInstanceData) throws IOException {
       this.rawInstanceData = rawInstanceData;
 
@@ -54,6 +54,7 @@ public class Instance {
       parseRawRooms();
       parseRawTimeslots();
       parsePossibleTimeslots();
+      parseConflicts();
    }
 
    private void parseRawEvents() throws IOException {
@@ -69,7 +70,7 @@ public class Instance {
          if (!(rawEvent instanceof Map)) {
             throw new IOException("'events' array contains elemts which aren't JSON objects!");
          }
-         Event event = new Event((Map)rawEvent);
+         Event event = new Event((Map) rawEvent);
          events.put(event.getId(), event);
       }
    }
@@ -87,7 +88,7 @@ public class Instance {
          if (!(rawRoom instanceof Map)) {
             throw new IOException("'rooms' array contains elemts which aren't JSON objects!");
          }
-         Room room = new Room((Map)rawRoom);
+         Room room = new Room((Map) rawRoom);
          rooms.put(room.getId(), room);
       }
    }
@@ -105,15 +106,18 @@ public class Instance {
          if (!(rawTimeslot instanceof Map)) {
             throw new IOException("'timeslots' array contains elemts which aren't JSON objects!");
          }
-         Timeslot timeslot = new Timeslot((Map)rawTimeslot);
+         Timeslot timeslot = new Timeslot((Map) rawTimeslot);
          timeslots.put(timeslot.getId(), timeslot);
       }
    }
 
    private void parsePossibleTimeslots() throws IOException {
-      for (Event event: getEvents()) {
+      for (Event event : getEvents()) {
          event.parsePossibleTimeslots(this);
       }
+   }
+
+   private void parseConflicts() {
    }
 
    public Collection<Event> getEvents() {
@@ -138,5 +142,36 @@ public class Instance {
 
    public Timeslot getTimeslot(String id) {
       return timeslots.get(id);
+   }
+
+   public Collection<TimeConflict> getStrictTimeConflicts() {
+      return strictTimeConflicts.values();
+   }
+
+   public TimeConflict getStrictTimeConflict(String id) {
+      return strictTimeConflicts.get(id);
+   }
+
+   public Collection<TimeConflict> getSoftTimeConflicts() {
+      return softTimeConflicts.values();
+   }
+
+   public TimeConflict getSoftTimeConflict(String id) {
+      return softTimeConflicts.get(id);
+   }
+
+   public Collection<TimeConflict> getTimeConflicts() {
+      Collection<TimeConflict> result = new HashSet();
+      result.addAll(getStrictTimeConflicts());
+      result.addAll(getSoftTimeConflicts());
+      return result;
+   }
+
+   public TimeConflict getTimeConflict(String id) {
+      TimeConflict result = getStrictTimeConflict(id);
+      if (result == null) {
+         result = getSoftTimeConflict(id);
+      }
+      return result;
    }
 }
