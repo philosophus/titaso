@@ -1,0 +1,128 @@
+{
+    "events": [
+	{
+	    "id": "e1",
+	    "possibleTimeslots": [
+		{
+		    "weight": 1,
+		    "timeslots": ["t1", "t2"]
+		},
+		{
+		    "weight": 2,
+		    "timeslots": ["t2", "t3"]
+		}
+	    ],
+	    "possibleRooms": [
+		{
+		    "weight": 1,
+		    "rooms": ["r1"]
+		}
+	    ]
+	},
+	{
+	    "id": "e2",
+	    "possibleTimeslots": [
+		{
+		    "weight": 1,
+		    "timeslots": ["t1"]
+		},
+		{
+		    "weight": 2,
+		    "timeslots": ["t2"]
+		}
+	    ],
+	    "possibleRooms": [
+		{
+		    "weight": 1,
+		    "rooms": ["r1"]
+		},
+		{
+		    "weight": 3,
+		    "rooms": ["r2"]
+		}
+	    ]
+	},
+	{
+	    "id": "e3",
+	    "possibleTimeslots": [
+		{
+		    "weight": 2,
+		    "timeslots": ["t1"]
+		},
+		{
+		    "weight": 1,
+		    "timeslots": ["t2"]
+		},
+		{
+		    "weigth": 3,
+		    "timeslots": ["t3"]
+		}
+	    ],
+	    "possibleRooms": [
+		{
+		    "weight": 1,
+		    "rooms": ["r1"]
+		},
+		{
+		    "weight": 2,
+		    "rooms": ["r2"]
+		}
+	    ]
+	},
+	{
+	    "id": "e4",
+	    "possibleTimeslots": [
+		{
+		    "weight": 3,
+		    "timeslots": ["t1", "t2"]
+		},
+		{
+		    "weight": 2,
+		    "timeslots": ["t2", "t3"]
+		}
+	    ],
+	    "possibleRooms": [
+		{
+		    "weight": 1,
+		    "rooms": ["r1"]
+		},
+		{
+		    "weight": 2,
+		    "rooms": ["r2"]
+		}
+	    ]
+	}
+    ],
+    "timeslots": [
+	{
+	    "id": "t1"
+	},
+	{
+	    "id": "t2"
+	},
+	{
+	    "id": "t3"
+	}
+    ],
+    "rooms": [
+	{
+	    "id": "r1"
+	},
+	{
+	    "id": "r2"
+	}
+    ],
+    "restrictions": [
+	{
+	    "id": "c1",
+	    "type": "time-conflict",
+	    "events": ["e2", "e3"]
+	},
+	{
+	    "id": "c2",
+	    "type": "time-conflict",
+	    "events": ["e1", "e3"]
+	}
+    ]
+}
+    
