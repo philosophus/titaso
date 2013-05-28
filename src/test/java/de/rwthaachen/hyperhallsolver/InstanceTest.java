@@ -30,5 +30,9 @@ public class InstanceTest extends TestCase {
       // Check if events are parsed correctly
       assertEquals(4, instance.getEvents().size());
       assertEquals("e1", instance.getEvent("e1").getId());
+
+      // Check if rooms are parsed correctly
+      assertEquals(2, instance.getRooms().size());
+      assertEquals("r1", instance.getRoom("r1").getId());
    }
 }

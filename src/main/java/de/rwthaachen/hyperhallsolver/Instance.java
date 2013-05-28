@@ -21,6 +21,8 @@ public class Instance {
 
    private Map<String, Event> events;
 
+   private Map<String, Room> rooms;
+
    public Instance(Map<String, Object> rawInstanceData) throws IOException {
       this.rawInstanceData = rawInstanceData;
 
@@ -47,6 +49,7 @@ public class Instance {
          throw new IOException("Instance data appears to be empty!");
       }
       parseRawEvents();
+      parseRawRooms();
    }
 
    private void parseRawEvents() throws IOException {
@@ -58,12 +61,30 @@ public class Instance {
       }
 
       events = new HashMap();
-      for (Object event : (Collection) rawInstanceData.get("events")) {
-         if (!(event instanceof Map)) {
+      for (Object rawEvent : (Collection) rawInstanceData.get("events")) {
+         if (!(rawEvent instanceof Map)) {
             throw new IOException("'events' array contains elemts which aren't JSON objects!");
          }
-         Event eventObject = new Event((Map)event);
-         events.put(eventObject.getId(), eventObject);
+         Event event = new Event((Map)rawEvent);
+         events.put(event.getId(), event);
+      }
+   }
+
+   private void parseRawRooms() throws IOException {
+      if (rawInstanceData.get("rooms") == null) {
+         throw new IOException("No rooms are specified!");
+      }
+      if (!(rawInstanceData.get("rooms") instanceof Collection)) {
+         throw new IOException("Field 'rooms' must be an Array!");
+      }
+
+      rooms = new HashMap();
+      for (Object rawRoom : (Collection) rawInstanceData.get("rooms")) {
+         if (!(rawRoom instanceof Map)) {
+            throw new IOException("'rooms' array contains elemts which aren't JSON objects!");
+         }
+         Room room = new Room((Map)rawRoom);
+         rooms.put(room.getId(), room);
       }
    }
 
@@ -73,5 +94,13 @@ public class Instance {
 
    public Event getEvent(String id) {
       return events.get(id);
+   }
+
+   public Collection<Room> getRooms() {
+      return rooms.values();
+   }
+
+   public Room getRoom(String id) {
+      return rooms.get(id);
    }
 }
