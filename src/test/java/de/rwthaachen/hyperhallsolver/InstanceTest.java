@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import junit.framework.TestCase;
 
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
+
 /**
  *
  * @author Florian Dahms <dahms@or.rwth-aachen.de>
@@ -28,11 +31,16 @@ public class InstanceTest extends TestCase {
       Instance instance = new Instance(new File("instances/xxs"));
 
       // Check if events are parsed correctly
-      assertEquals(4, instance.getEvents().size());
-      assertEquals("e1", instance.getEvent("e1").getId());
+      assertThat(instance.getEvents().size(), is(4));
+      assertThat(instance.getEvent("e1").getId(), is("e1"));
+      assertThat(instance.getEvent("e2").getId(), is(not("e1")));
 
       // Check if rooms are parsed correctly
-      assertEquals(2, instance.getRooms().size());
-      assertEquals("r1", instance.getRoom("r1").getId());
+      assertThat(instance.getRooms().size(), is(2));
+      assertThat(instance.getRoom("r1").getId(), is("r1"));
+
+      // Check if timeslots are parsed correctly
+      assertThat(instance.getTimeslots().size(), is(3));
+      assertThat(instance.getTimeslot("t1").getId(), is("t1"));
    }
 }

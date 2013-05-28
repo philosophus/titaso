@@ -23,6 +23,8 @@ public class Instance {
 
    private Map<String, Room> rooms;
 
+   private Map<String, Timeslot> timeslots;
+
    public Instance(Map<String, Object> rawInstanceData) throws IOException {
       this.rawInstanceData = rawInstanceData;
 
@@ -50,6 +52,8 @@ public class Instance {
       }
       parseRawEvents();
       parseRawRooms();
+      parseRawTimeslots();
+      parsePossibleTimeslots();
    }
 
    private void parseRawEvents() throws IOException {
@@ -88,6 +92,28 @@ public class Instance {
       }
    }
 
+   private void parseRawTimeslots() throws IOException {
+      if (rawInstanceData.get("timeslots") == null) {
+         throw new IOException("No timeslots are specified!");
+      }
+      if (!(rawInstanceData.get("timeslots") instanceof Collection)) {
+         throw new IOException("Field 'timeslots' must be an Array!");
+      }
+
+      timeslots = new HashMap();
+      for (Object rawTimeslot : (Collection) rawInstanceData.get("timeslots")) {
+         if (!(rawTimeslot instanceof Map)) {
+            throw new IOException("'timeslots' array contains elemts which aren't JSON objects!");
+         }
+         Timeslot timeslot = new Timeslot((Map)rawTimeslot);
+         timeslots.put(timeslot.getId(), timeslot);
+      }
+   }
+
+   private void parsePossibleTimeslots() {
+      
+   }
+
    public Collection<Event> getEvents() {
       return events.values();
    }
@@ -102,5 +128,13 @@ public class Instance {
 
    public Room getRoom(String id) {
       return rooms.get(id);
+   }
+
+   public Collection<Timeslot> getTimeslots() {
+      return timeslots.values();
+   }
+
+   public Timeslot getTimeslot(String id) {
+      return timeslots.get(id);
    }
 }
