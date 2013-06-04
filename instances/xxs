@@ -122,6 +122,12 @@
 	    "id": "c2",
 	    "type": "time-conflict",
 	    "events": ["e1", "e3"]
+	},
+	{
+	    "id": "c3",
+	    "type": "time-conflict",
+	    "weight": 4,
+	    "events": ["e1", "e4"]
 	}
     ]
 }

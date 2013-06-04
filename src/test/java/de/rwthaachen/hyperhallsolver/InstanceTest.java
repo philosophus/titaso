@@ -47,5 +47,10 @@ public class InstanceTest extends TestCase {
       // Check if possible timeslots are parsed correctly
       assertThat(instance.getEvent("e1").getPossibleTimeslots().size(), is(2));
       assertThat(instance.getEvent("e1").getPossibleTimeslots().iterator().next().getTimeslots(), hasItem(instance.getTimeslot("t2")));
+
+      // Check if conflicts are parsed correctly
+      assertThat(instance.getStrictTimeConflicts().size(), is(2));
+      assertThat(instance.getSoftTimeConflicts().size(), is(1));
+      assertThat(instance.getTimeConflict("c1").getEvents(), hasItem(instance.getEvent("e2")));
    }
 }
