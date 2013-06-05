@@ -48,7 +48,17 @@ public class ColoringSolver {
                varName += " " +timeslot.getId();
             }
             GRBVar var = model.addVar(0.0, 1.0, possibleTimeslot.getWeight(), GRB.BINARY, varName);
+
+            variables.put(possibleTimeslot, var);
          }
       }
+   }
+
+   public GRBModel getModel() {
+      return model;
+   }
+
+   public Map<TimeslotGroup, GRBVar> getVariables() {
+      return variables;
    }
 }
