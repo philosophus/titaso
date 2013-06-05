@@ -55,6 +55,9 @@ public class ColoringSolverTest {
       solver.createStrictTimeConflictConstraints();
       assertThat(solver.getStrictTimeConflictConstraints().size(), is(2));
 
+      solver.createSoftTimeConflictConstraintsAndVariables();
+      assertThat(solver.getSoftTimeConflictConstraints().size(), is(1));
+
       solver.setObjective();
 
       solver.solve();

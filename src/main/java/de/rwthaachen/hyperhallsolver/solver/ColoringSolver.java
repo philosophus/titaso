@@ -31,7 +31,7 @@ public class ColoringSolver {
    private Map<Event, GRBConstr> boundEventOccurenceConstraints;
    private Map<TimeConflict, Set<GRBConstr>> strictTimeConflictConstraints;
    private Map<TimeConflict, Set<GRBConstr>> softTimeConflictConstraints;
-//   Map<TimeConflict, GRBVar> softTimeConflictVariables;
+   private Map<TimeConflict, Set<GRBVar>> softTimeConflictVariables;
 
    public ColoringSolver(Instance instance) {
       this.instance = instance;
@@ -136,17 +136,61 @@ public class ColoringSolver {
             for (TimeslotGroup timeslotGroup : conflictGroup) {
                expr.addTerm(1.0, variables.get(timeslotGroup));
             }
-            GRBConstr cons = model.addConstr(expr, GRB.LESS_EQUAL, 1.0, "Time conflict " + timeConflict.getId() + " number " + i);
+            GRBConstr cons = model.addConstr(expr, GRB.LESS_EQUAL, 1.0, "Time conflict " + timeConflict.getId() + ", constraint number " + i);
             conss.add(cons);
          }
          this.strictTimeConflictConstraints.put(timeConflict, conss);
       }
    }
 
+   public void createSoftTimeConflictConstraintsAndVariables() throws GRBException {
+      assert (env != null);
+      assert (model != null);
+      assert (variables != null);
+
+      this.softTimeConflictConstraints = new HashMap();
+      this.softTimeConflictVariables = new HashMap();
+      for (TimeConflict timeConflict : instance.getSoftTimeConflicts()) {
+         Set<Set<TimeslotGroup>> collidingTimeslots = getCollidingTimeslots(timeConflict);
+
+         int i = 0;
+         Set<GRBConstr> conss = new HashSet();
+         Set<GRBVar> vars = new HashSet();
+         for (Set<TimeslotGroup> conflictGroup : collidingTimeslots) {
+            ++i;
+            GRBVar var = model.addVar(0.0, GRB.INFINITY, 0.0, GRB.INTEGER, "Time conflict " + timeConflict.getId() + ", variable number " + i);
+            vars.add(var);
+
+            model.update();
+
+            GRBLinExpr expr = new GRBLinExpr();
+            expr.addTerm(-1.0, var);
+            for (TimeslotGroup possibleTimeslot : conflictGroup) {
+               expr.addTerm(1.0, variables.get(possibleTimeslot));
+            }
+            GRBConstr cons = model.addConstr(expr, GRB.LESS_EQUAL, 1.0, "Time conflict " + timeConflict.getId() + ", constraint number " + i);
+            conss.add(cons);
+         }
+         this.softTimeConflictConstraints.put(timeConflict, conss);
+         this.softTimeConflictVariables.put(timeConflict, vars);
+      }
+
+   }
+
    public void setObjective() throws GRBException {
+      assert (env != null);
+      assert (model != null);
+      assert (variables != null);
+
       GRBLinExpr obj = new GRBLinExpr();
       for (Map.Entry<TimeslotGroup, GRBVar> var : variables.entrySet()) {
          obj.addTerm(var.getKey().getWeight(), var.getValue());
+      }
+
+      for (Map.Entry<TimeConflict, Set<GRBVar>> vars : this.softTimeConflictVariables.entrySet()) {
+         for (GRBVar var : vars.getValue()) {
+            obj.addTerm(vars.getKey().getWeight(), var);
+         }
       }
 
       model.setObjective(obj, GRB.MINIMIZE);
@@ -154,6 +198,10 @@ public class ColoringSolver {
    }
 
    public void solve() throws GRBException {
+      assert (env != null);
+      assert (model != null);
+      assert (variables != null);
+
       model.optimize();
 
       for (GRBVar var : model.getVars()) {
