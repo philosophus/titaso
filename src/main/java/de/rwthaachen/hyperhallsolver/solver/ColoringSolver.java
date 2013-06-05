@@ -32,6 +32,7 @@ public class ColoringSolver {
    private Map<TimeConflict, Set<GRBConstr>> strictTimeConflictConstraints;
    private Map<TimeConflict, Set<GRBConstr>> softTimeConflictConstraints;
    private Map<TimeConflict, Set<GRBVar>> softTimeConflictVariables;
+   private HyperHallSeperator hyperHallSeperator;
 
    public ColoringSolver(Instance instance) {
       this.instance = instance;
@@ -100,12 +101,12 @@ public class ColoringSolver {
       }
    }
 
-   private Set<Set<TimeslotGroup>> getCollidingTimeslots(TimeConflict timeConflict) {
+   private Set<Set<TimeslotGroup>> getCollidingTimeslots(Set<Event> events) {
       Set<Set<TimeslotGroup>> collidingTimeslots = new HashSet();
       for (Timeslot timeslot : instance.getTimeslots()) {
          Set<TimeslotGroup> conflictGroup = new HashSet();
          for (TimeslotGroup possibleTimeslot : this.possibleTimeslotsAt.get(timeslot)) {
-            if (timeConflict.getEvents().contains(possibleTimeslot.getEvent())) {
+            if (events.contains(possibleTimeslot.getEvent())) {
                conflictGroup.add(possibleTimeslot);
             }
          }
@@ -125,7 +126,7 @@ public class ColoringSolver {
       this.strictTimeConflictConstraints = new HashMap();
       for (TimeConflict timeConflict : instance.getStrictTimeConflicts()) {
          // Collect set of colliding time slots
-         Set<Set<TimeslotGroup>> collidingTimeslots = getCollidingTimeslots(timeConflict);
+         Set<Set<TimeslotGroup>> collidingTimeslots = getCollidingTimeslots(timeConflict.getEvents());
 
          // Create the conflicts
          int i = 0;
@@ -151,7 +152,7 @@ public class ColoringSolver {
       this.softTimeConflictConstraints = new HashMap();
       this.softTimeConflictVariables = new HashMap();
       for (TimeConflict timeConflict : instance.getSoftTimeConflicts()) {
-         Set<Set<TimeslotGroup>> collidingTimeslots = getCollidingTimeslots(timeConflict);
+         Set<Set<TimeslotGroup>> collidingTimeslots = getCollidingTimeslots(timeConflict.getEvents());
 
          int i = 0;
          Set<GRBConstr> conss = new HashSet();
@@ -195,6 +196,11 @@ public class ColoringSolver {
 
       model.setObjective(obj, GRB.MINIMIZE);
       model.update();
+   }
+
+   public void addHyperHallSeperator() {
+      hyperHallSeperator = new HyperHallSeperator(model);
+      model.setCallback(hyperHallSeperator);
    }
 
    public void solve() throws GRBException {

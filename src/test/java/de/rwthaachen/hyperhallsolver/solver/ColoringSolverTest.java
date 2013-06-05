@@ -58,6 +58,8 @@ public class ColoringSolverTest {
       solver.createSoftTimeConflictConstraintsAndVariables();
       assertThat(solver.getSoftTimeConflictConstraints().size(), is(1));
 
+      solver.addHyperHallSeperator();
+
       solver.setObjective();
 
       solver.solve();

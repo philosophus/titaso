@@ -35,10 +35,6 @@
 		{
 		    "weight": 1,
 		    "rooms": ["r1"]
-		},
-		{
-		    "weight": 3,
-		    "rooms": ["r2"]
 		}
 	    ]
 	},

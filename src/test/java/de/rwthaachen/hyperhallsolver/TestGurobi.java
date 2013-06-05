@@ -46,7 +46,7 @@ public class TestGurobi {
 
    @Test
    public void testGurobiFunctionality() throws GRBException {
-      GRBEnv env = new GRBEnv("mip1.log");
+      GRBEnv env = new GRBEnv();
       GRBModel model = new GRBModel(env);
 
       // Create variables
