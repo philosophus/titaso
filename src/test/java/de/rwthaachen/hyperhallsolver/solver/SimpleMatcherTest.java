@@ -14,6 +14,8 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
 /**
  *
@@ -22,7 +24,7 @@ import org.junit.Test;
 public class SimpleMatcherTest {
 
    private Instance instance;
-   private Map<TimeslotGroup, Event> assignedTimeslots;
+   private Map<Event, TimeslotGroup> assignedTimeslots;
 
 
    public SimpleMatcherTest() {
@@ -43,22 +45,22 @@ public class SimpleMatcherTest {
       assignedTimeslots = new HashMap();
       for (TimeslotGroup possibleTimeslot: instance.getEvent("e1").getPossibleTimeslots()) {
          if (possibleTimeslot.getWeight() == 1.0) {
-            assignedTimeslots.put(possibleTimeslot, instance.getEvent("e1"));
+            assignedTimeslots.put(instance.getEvent("e1"), possibleTimeslot);
          }
       }
       for (TimeslotGroup possibleTimeslot: instance.getEvent("e2").getPossibleTimeslots()) {
          if (possibleTimeslot.getWeight() == 1.0) {
-            assignedTimeslots.put(possibleTimeslot, instance.getEvent("e2"));
+            assignedTimeslots.put(instance.getEvent("e2"), possibleTimeslot);
          }
       }
       for (TimeslotGroup possibleTimeslot: instance.getEvent("e3").getPossibleTimeslots()) {
          if (possibleTimeslot.getWeight() == 3.0) {
-            assignedTimeslots.put(possibleTimeslot, instance.getEvent("e3"));
+            assignedTimeslots.put(instance.getEvent("e3"), possibleTimeslot);
          }
       }
       for (TimeslotGroup possibleTimeslot: instance.getEvent("e4").getPossibleTimeslots()) {
          if (possibleTimeslot.getWeight() == 2.0) {
-            assignedTimeslots.put(possibleTimeslot, instance.getEvent("e4"));
+            assignedTimeslots.put(instance.getEvent("e4"), possibleTimeslot);
          }
       }
    }
@@ -82,5 +84,7 @@ public class SimpleMatcherTest {
       matcher.setObjective();
 
       matcher.solve();
+
+      assertThat(matcher.getUnmatchedEvents().size(), is(1));
    }
 }

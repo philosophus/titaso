@@ -59,6 +59,7 @@ public class ColoringSolver {
       assert (logfilename.length() >= 1);
 
       env = new GRBEnv(logfilename);
+      env.set(GRB.IntParam.LazyConstraints, 1);
       model = new GRBModel(env);
    }
 
@@ -149,6 +150,8 @@ public class ColoringSolver {
       assert (model != null);
       assert (variables != null);
 
+      // TODO: make sure it is paid only once if a 2 timeslotevent overlaps
+
       this.softTimeConflictConstraints = new HashMap();
       this.softTimeConflictVariables = new HashMap();
       for (TimeConflict timeConflict : instance.getSoftTimeConflicts()) {
@@ -199,7 +202,7 @@ public class ColoringSolver {
    }
 
    public void addHyperHallSeperator() {
-      hyperHallSeperator = new HyperHallSeperator(model);
+      hyperHallSeperator = new HyperHallSeperator(env, model, instance, variables);
       model.setCallback(hyperHallSeperator);
    }
 

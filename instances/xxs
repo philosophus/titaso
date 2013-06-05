@@ -28,7 +28,7 @@
 		},
 		{
 		    "weight": 2,
-		    "timeslots": ["t2"]
+		    "timeslots": ["t3"]
 		}
 	    ],
 	    "possibleRooms": [
@@ -112,6 +112,7 @@
 	{
 	    "id": "c1",
 	    "type": "time-conflict",
+	    "weight": 3,
 	    "events": ["e2", "e3"]
 	},
 	{
@@ -127,4 +128,3 @@
 	}
     ]
 }
-    

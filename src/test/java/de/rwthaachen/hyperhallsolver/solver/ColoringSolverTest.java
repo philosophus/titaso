@@ -53,10 +53,10 @@ public class ColoringSolverTest {
       assertThat(solver.getBoundEventOccurenceConstraints().size(), is(4));
 
       solver.createStrictTimeConflictConstraints();
-      assertThat(solver.getStrictTimeConflictConstraints().size(), is(2));
+      assertThat(solver.getStrictTimeConflictConstraints().size(), is(1));
 
       solver.createSoftTimeConflictConstraintsAndVariables();
-      assertThat(solver.getSoftTimeConflictConstraints().size(), is(1));
+      assertThat(solver.getSoftTimeConflictConstraints().size(), is(2));
 
       solver.addHyperHallSeperator();
 

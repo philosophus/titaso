@@ -25,7 +25,7 @@ import java.util.Set;
 public class SimpleMatcher {
 
    private Instance instance;
-   private Map<TimeslotGroup, Event> assignedTimeslots;
+   private Map<Event, TimeslotGroup> assignedTimeslots;
    private Map<Timeslot, Set<TimeslotGroup>> assignedTimeslotsAt;
    private GRBEnv env;
    private GRBModel model;
@@ -34,7 +34,7 @@ public class SimpleMatcher {
    private Map<Event, GRBVar> shallBeMatchedVariables;
    private Map<Room, Map<Timeslot, GRBConstr>> roomConflicts;
 
-   public SimpleMatcher(Instance instance, Map<TimeslotGroup, Event> assignedTimeslots) {
+   public SimpleMatcher(Instance instance, Map<Event, TimeslotGroup> assignedTimeslots) {
       this.instance = instance;
       this.assignedTimeslots = assignedTimeslots;
 
@@ -45,7 +45,7 @@ public class SimpleMatcher {
       assert (assignedTimeslots != null);
 
       assignedTimeslotsAt = new HashMap();
-      for (TimeslotGroup possibleTimeslot : assignedTimeslots.keySet()) {
+      for (TimeslotGroup possibleTimeslot : assignedTimeslots.values()) {
          for (Timeslot timeslot : possibleTimeslot.getTimeslots()) {
             if (!assignedTimeslotsAt.containsKey(timeslot)) {
                assignedTimeslotsAt.put(timeslot, new HashSet());
@@ -153,11 +153,28 @@ public class SimpleMatcher {
       assert (variables != null);
 
       model.optimize();
+   }
 
-      for (GRBVar var : model.getVars()) {
-         if (var.get(GRB.DoubleAttr.X) != 0.0) {
-            System.out.println(var.get(GRB.StringAttr.VarName) + ": " + var.get(GRB.DoubleAttr.Obj));
+   public void setUpAndCreateModel(GRBEnv env) throws GRBException {
+      setUp(env);
+      createVariables();
+      createShallBeMatchedConstraintsAndVariables();
+      createRoomConflictConstraints();
+      setObjective();
+   }
+
+   public Set<Event> getUnmatchedEvents() throws GRBException {
+      assert (env != null);
+      assert (model != null);
+      assert (variables != null);
+
+      Set<Event> unmatchedEvents = new HashSet();
+      for (Map.Entry<Event, GRBVar> possiblyUnmatched : this.shallBeMatchedVariables.entrySet()) {
+         if (possiblyUnmatched.getValue().get(GRB.DoubleAttr.X) > 0.0) {
+            unmatchedEvents.add(possiblyUnmatched.getKey());
          }
       }
+
+      return unmatchedEvents;
    }
 }
