@@ -17,6 +17,8 @@ public class Event {
 
    private Set<TimeslotGroup> possibleTimeslots;
 
+   private Set<RoomGroup> possibleRooms;
+
    public Event(Map<String, Object> rawEventData) throws IOException {
       if (rawEventData == null) {
          throw new IOException("Event object is empty");
@@ -55,12 +57,35 @@ public class Event {
       }
    }
 
+   public void parsePossibleRooms(Instance instance) throws IOException {
+      possibleRooms = new HashSet();
+
+      if (rawEventData.get("possibleRooms") == null) {
+         return; // if no room is possible the event simply cannot get assigned one
+      }
+      if (!(rawEventData.get("possibleRooms") instanceof Collection)) {
+         throw new IOException("Field 'possibleRooms' of an Event must be an Array!");
+      }
+
+      for (Object rawRoomGroupData : (Collection) rawEventData.get("possibleRooms")) {
+         if (!(rawRoomGroupData instanceof Map)) {
+            throw new IOException("'possibleRooms' array of Event contains elemts which aren't JSON objects!");
+         }
+
+         possibleRooms.add(new RoomGroup((Map)rawRoomGroupData, instance));
+      }
+   }
+
    public String getId() {
       return id;
    }
 
    public Set<TimeslotGroup> getPossibleTimeslots() {
       return possibleTimeslots;
+   }
+
+   public Set<RoomGroup> getPossibleRooms() {
+      return possibleRooms;
    }
    
 }

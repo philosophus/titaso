@@ -54,6 +54,7 @@ public class Instance {
       parseRawRooms();
       parseRawTimeslots();
       parsePossibleTimeslots();
+      parsePossibleRooms();
       parseConflicts();
    }
 
@@ -114,6 +115,12 @@ public class Instance {
    private void parsePossibleTimeslots() throws IOException {
       for (Event event : getEvents()) {
          event.parsePossibleTimeslots(this);
+      }
+   }
+
+   private void parsePossibleRooms() throws IOException {
+      for (Event event : getEvents()) {
+         event.parsePossibleRooms(this);
       }
    }
 
