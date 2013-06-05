@@ -26,5 +26,12 @@
          <artifactId>jackson-mapper-asl</artifactId>
          <version>1.9.12</version>
       </dependency>
+      <dependency>
+         <groupId>com.gurobi</groupId>
+         <artifactId>gurobi</artifactId>
+         <version>5.5.0</version>
+         <scope>system</scope>
+         <systemPath>${project.basedir}/lib/gurobi.jar</systemPath>
+      </dependency>
    </dependencies>
 </project>
