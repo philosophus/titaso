@@ -48,5 +48,15 @@ public class ColoringSolverTest {
 
       solver.createVaribles();
       assertThat(solver.getVariables().size(), is(9));
+
+      solver.createBoundEventOccurenceConstraints();
+      assertThat(solver.getBoundEventOccurenceConstraints().size(), is(4));
+
+      solver.createStrictTimeConflictConstraints();
+      assertThat(solver.getStrictTimeConflictConstraints().size(), is(2));
+
+      solver.setObjective();
+
+      solver.solve();
    }
 }

@@ -47,6 +47,7 @@ public class InstanceTest extends TestCase {
       // Check if possible timeslots are parsed correctly
       assertThat(instance.getEvent("e1").getPossibleTimeslots().size(), is(2));
       assertThat(instance.getEvent("e1").getPossibleTimeslots().iterator().next().getTimeslots(), hasItem(instance.getTimeslot("t2")));
+      assertThat(instance.getEvent("e2").getPossibleTimeslots().iterator().next().getEvent(), is(instance.getEvent("e2")));
 
       // Check if possible rooms are parsed correctly
       assertThat(instance.getEvent("e2").getPossibleRooms().size(), is(2));

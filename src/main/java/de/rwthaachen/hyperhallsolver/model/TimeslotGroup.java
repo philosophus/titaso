@@ -15,9 +15,11 @@ public class TimeslotGroup {
    Map<String, Object> rawTimeslotGroupData;
    Double weight;
    Set<Timeslot> timeslots;
+   Event event;   // the event this group belong to
 
-   public TimeslotGroup(Map<String, Object> rawTimeslotGroupData, Instance instance) throws IOException {
+   public TimeslotGroup(Map<String, Object> rawTimeslotGroupData, Event event, Instance instance) throws IOException {
       this.rawTimeslotGroupData = rawTimeslotGroupData;
+      this.event = event;
 
       parseRawTimeslotGroupData(instance);
    }
@@ -63,5 +65,9 @@ public class TimeslotGroup {
 
    public Set<Timeslot> getTimeslots() {
       return timeslots;
+   }
+
+   public Event getEvent() {
+      return event;
    }
 }

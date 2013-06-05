@@ -54,7 +54,7 @@
 		    "timeslots": ["t2"]
 		},
 		{
-		    "weigth": 3,
+		    "weight": 3,
 		    "timeslots": ["t3"]
 		}
 	    ],

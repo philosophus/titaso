@@ -53,7 +53,7 @@ public class Event {
             throw new IOException("'possibleTimeslots' array of Event contains elemts which aren't JSON objects!");
          }
 
-         possibleTimeslots.add(new TimeslotGroup((Map)rawTimeslotGroupData, instance));
+         possibleTimeslots.add(new TimeslotGroup((Map)rawTimeslotGroupData, this, instance));
       }
    }
 
