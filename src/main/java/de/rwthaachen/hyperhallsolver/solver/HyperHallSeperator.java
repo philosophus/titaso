@@ -2,6 +2,8 @@ package de.rwthaachen.hyperhallsolver.solver;
 
 import de.rwthaachen.hyperhallsolver.model.Event;
 import de.rwthaachen.hyperhallsolver.model.Instance;
+import de.rwthaachen.hyperhallsolver.model.Room;
+import de.rwthaachen.hyperhallsolver.model.RoomGroup;
 import de.rwthaachen.hyperhallsolver.model.Timeslot;
 import de.rwthaachen.hyperhallsolver.model.TimeslotGroup;
 import gurobi.GRB;
@@ -70,8 +72,8 @@ public class HyperHallSeperator extends GRBCallback {
 
       while (!unmatchedEvents.isEmpty()) {
          Event anyEvent = unmatchedEvents.iterator().next();
-         Set<TimeslotGroup> connectedTimeslots = getConnectedTimeslots(assignedTimeslots.get(anyEvent), assignedTimeslots.values());
-
+//         Set<TimeslotGroup> connectedTimeslots = getConnectedTimeslots(assignedTimeslots.get(anyEvent), assignedTimeslots.values());
+         Set<TimeslotGroup> connectedTimeslots = getConnectedTimeslots(anyEvent, assignedTimeslots, matcher.getSolution());
          // remove unmatched events in the connected component
          int removedEvents = 0;
          for (TimeslotGroup assignedTimeslot : connectedTimeslots) {
@@ -104,6 +106,46 @@ public class HyperHallSeperator extends GRBCallback {
       }
 
       return timeslotToTimeslotGroupMap;
+   }
+
+   private Set<TimeslotGroup> getConnectedTimeslots(Event startEvent, Map<Event, TimeslotGroup> assignedTimeslots, Map<Event, RoomGroup> assignedRooms) {
+      Queue<Event> toConsider = new LinkedList();
+      toConsider.add(startEvent);
+      Set<Event> considered = new HashSet();
+      Set<TimeslotGroup> result = new HashSet();
+      result.add(assignedTimeslots.get(startEvent));
+
+      Map<Timeslot, Set<TimeslotGroup>> timeslotToTimeslotGroupMap = createTimeslotToTimeslotGroupMap(assignedTimeslots.values());
+
+      while (!toConsider.isEmpty()) {
+         Event current = toConsider.poll();
+         Set<Room> currentsPossibleRooms = new HashSet();
+         for (RoomGroup rooms : current.getPossibleRooms()) {
+            currentsPossibleRooms.addAll(rooms.getRooms());
+         }
+
+         considered.add(current);
+
+         Set<Event> connecting = new HashSet();
+         for (Timeslot timeslot : assignedTimeslots.get(current).getTimeslots()) {
+            for (TimeslotGroup assignedTimeslot : timeslotToTimeslotGroupMap.get(timeslot)) {
+               RoomGroup assignedRoom = assignedRooms.get(assignedTimeslot.getEvent());
+               if (assignedRoom != null) {   // TODO: Check if not assigned rooms can be considered in a useful way
+                  for (Room room : assignedRoom.getRooms()) {
+                     if (currentsPossibleRooms.contains(room)) {
+                        connecting.add(assignedTimeslot.getEvent());
+                        result.add(assignedTimeslot);
+                     }
+                  }
+               }
+            }
+         }
+
+         connecting.removeAll(considered);
+         toConsider.addAll(connecting);
+      }
+
+      return result;
    }
 
    private Set<TimeslotGroup> getConnectedTimeslots(TimeslotGroup startPoint, Collection<TimeslotGroup> world) {

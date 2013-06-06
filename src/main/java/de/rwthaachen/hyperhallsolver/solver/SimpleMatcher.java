@@ -177,4 +177,21 @@ public class SimpleMatcher {
 
       return unmatchedEvents;
    }
+
+   public Map<Event, RoomGroup> getSolution() throws GRBException {
+      assert (env != null);
+      assert (model != null);
+      assert (variables != null);
+
+      Map<Event, RoomGroup> solution = new HashMap();
+      for (Event event : instance.getEvents()) {
+         for (RoomGroup possibleRooms : event.getPossibleRooms()) {
+            if (variables.get(possibleRooms).get(GRB.DoubleAttr.X) > 0.5) {
+               solution.put(event, possibleRooms);
+            }
+         }
+      }
+
+      return solution;
+   }
 }

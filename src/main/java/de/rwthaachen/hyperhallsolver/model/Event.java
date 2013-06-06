@@ -72,7 +72,7 @@ public class Event {
             throw new IOException("'possibleRooms' array of Event contains elemts which aren't JSON objects!");
          }
 
-         possibleRooms.add(new RoomGroup((Map)rawRoomGroupData, instance));
+         possibleRooms.add(new RoomGroup((Map)rawRoomGroupData, instance, this));
       }
    }
 
