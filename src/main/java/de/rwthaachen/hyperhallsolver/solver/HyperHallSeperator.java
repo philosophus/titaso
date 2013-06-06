@@ -130,11 +130,20 @@ public class HyperHallSeperator extends GRBCallback {
          for (Timeslot timeslot : assignedTimeslots.get(current).getTimeslots()) {
             for (TimeslotGroup assignedTimeslot : timeslotToTimeslotGroupMap.get(timeslot)) {
                RoomGroup assignedRoom = assignedRooms.get(assignedTimeslot.getEvent());
-               if (assignedRoom != null) {   // TODO: Check if not assigned rooms can be considered in a useful way
+               if (assignedRoom != null) {
                   for (Room room : assignedRoom.getRooms()) {
                      if (currentsPossibleRooms.contains(room)) {
                         connecting.add(assignedTimeslot.getEvent());
                         result.add(assignedTimeslot);
+                     }
+                  }
+               } else { // TODO: Check if this is an improvement or makes things worse
+                  for (RoomGroup possibleRoomGroup : assignedTimeslot.getEvent().getPossibleRooms()) {
+                     for (Room room : possibleRoomGroup.getRooms()) {
+                        if (currentsPossibleRooms.contains(room)) {
+                           connecting.add(assignedTimeslot.getEvent());
+                           result.add(assignedTimeslot);
+                        }
                      }
                   }
                }
