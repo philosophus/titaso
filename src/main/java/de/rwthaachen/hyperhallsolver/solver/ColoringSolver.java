@@ -42,12 +42,16 @@ public class ColoringSolver {
 
    private void calculatePossibleTimeslotsAt() {
       possibleTimeslotsAt = new HashMap();
+      for (Timeslot timeslot : instance.getTimeslots()) {
+         possibleTimeslotsAt.put(timeslot, new HashSet());
+      }
+
       for (Event event : instance.getEvents()) {
          for (TimeslotGroup possibleTimeslot : event.getPossibleTimeslots()) {
             for (Timeslot timeslot : possibleTimeslot.getTimeslots()) {
-               if (!possibleTimeslotsAt.containsKey(timeslot)) {
-                  possibleTimeslotsAt.put(timeslot, new HashSet());
-               }
+//               if (!possibleTimeslotsAt.containsKey(timeslot)) {
+//                  possibleTimeslotsAt.put(timeslot, new HashSet());
+//               }
                possibleTimeslotsAt.get(timeslot).add(possibleTimeslot);
             }
          }

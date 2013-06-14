@@ -38,6 +38,9 @@ public class Instance {
       parseRawInstanceData();
    }
 
+   private Instance() {
+   }
+
    public String toJsonString() throws IOException {
       ObjectMapper mapper = new ObjectMapper();
       return mapper.writeValueAsString(this.rawInstanceData);
@@ -210,5 +213,13 @@ public class Instance {
          result = getSoftTimeConflict(id);
       }
       return result;
+   }
+
+   static public Instance createRandom() {
+      Instance randomInstance = new Instance();
+
+
+
+      return randomInstance;
    }
 }
