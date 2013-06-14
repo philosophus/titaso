@@ -100,7 +100,7 @@ n_events.times do |i|
 
   # assign possible rooms
   event[:possibleRooms] = []
-  n_choose = (n_rooms.to_f / 2).ceil
+  n_choose = (n_rooms.to_f / 5).ceil
   instance[:rooms].sample(n_choose).each do |r|
     possible_rooms = Hash.new
     possible_rooms[:weight] = rand(3)+1

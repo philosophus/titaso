@@ -89,6 +89,7 @@ public class HyperHallSeperator extends GRBCallback {
             expr.addTerm(1.0, variables.get(assignedTimeslot));
          }
          addLazy(expr, GRB.LESS_EQUAL, connectedTimeslots.size() - removedEvents);
+         System.out.println("Created lazy constraint");
       }
 
    }
