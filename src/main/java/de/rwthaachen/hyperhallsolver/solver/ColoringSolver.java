@@ -63,6 +63,7 @@ public class ColoringSolver {
       assert (logfilename.length() >= 1);
 
       env = new GRBEnv(logfilename);
+      env.set(GRB.DoubleParam.TimeLimit, 1200);
       env.set(GRB.IntParam.LazyConstraints, 1);
       model = new GRBModel(env);
    }
@@ -216,12 +217,16 @@ public class ColoringSolver {
       assert (variables != null);
 
       model.optimize();
+   }
 
-      for (GRBVar var : model.getVars()) {
-         if (var.get(GRB.DoubleAttr.X) != 0.0) {
-            System.out.println(var.get(GRB.StringAttr.VarName) + ": " + var.get(GRB.DoubleAttr.Obj));
+   public Map<Event, TimeslotGroup> getSolution() throws GRBException {
+      Map<Event, TimeslotGroup> assignedTimeslots = new HashMap();
+      for (Map.Entry<TimeslotGroup, GRBVar> variable : variables.entrySet()) {
+         if (variable.getValue().get(GRB.DoubleAttr.X) > 0.5) {
+            assignedTimeslots.put(variable.getKey().getEvent(), variable.getKey());
          }
       }
+      return assignedTimeslots;
    }
 
    public GRBModel getModel() {

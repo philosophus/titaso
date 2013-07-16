@@ -1,10 +1,16 @@
 package de.rwthaachen.hyperhallsolver;
 
+import de.rwthaachen.hyperhallsolver.model.Event;
 import de.rwthaachen.hyperhallsolver.model.Instance;
+import de.rwthaachen.hyperhallsolver.model.RoomGroup;
+import de.rwthaachen.hyperhallsolver.model.TimeslotGroup;
 import de.rwthaachen.hyperhallsolver.solver.ColoringSolver;
+import de.rwthaachen.hyperhallsolver.solver.SimpleMatcher;
+import gurobi.GRBEnv;
 import gurobi.GRBException;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  *
@@ -31,5 +37,14 @@ public class Main {
       solver.setObjective();
 
       solver.solve();
+
+      Map<Event, TimeslotGroup> assignedTimeslots = solver.getSolution();
+      SimpleMatcher matcher = new SimpleMatcher(instance, assignedTimeslots);
+      matcher.setUpAndCreateModel(new GRBEnv());
+      matcher.solve();
+      Map<Event, RoomGroup> assignedRooms = matcher.getSolution();
+
+      instance.assignSolution(assignedTimeslots, assignedRooms);
+      instance.save(new File(filename+"_sol"));
    }
 }

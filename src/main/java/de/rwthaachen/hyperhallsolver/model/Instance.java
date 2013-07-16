@@ -46,6 +46,11 @@ public class Instance {
       return mapper.writeValueAsString(this.rawInstanceData);
    }
 
+   public void save(File file) throws IOException {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.writeValue(file, this.rawInstanceData);
+   }
+
    /**
     * Turns the necessary parts of the raw instance data into the object model.
     */
@@ -141,13 +146,13 @@ public class Instance {
          if (!(rawConflict instanceof Map)) {
             throw new IOException("'restrictions' array contains elements which aren't JSON objects!");
          }
-         if (((Map)rawConflict).get("type") == null) {
+         if (((Map) rawConflict).get("type") == null) {
             throw new IOException("Field 'type' of restrictions does not exist!");
          }
-         if (!(((Map)rawConflict).get("type") instanceof String)) {
+         if (!(((Map) rawConflict).get("type") instanceof String)) {
             throw new IOException("Field 'type' of restriction must be a String!");
          }
-         String type = (String)((Map)rawConflict).get("type");
+         String type = (String) ((Map) rawConflict).get("type");
 
          if (type.equals("time-conflict")) {
             TimeConflict conflict = new TimeConflict((Map) rawConflict, this);
@@ -157,6 +162,12 @@ public class Instance {
                softTimeConflicts.put(conflict.getId(), conflict);
             }
          }
+      }
+   }
+
+   public void assignSolution(Map<Event, TimeslotGroup> assignedTimeslots, Map<Event, RoomGroup> assignedRooms) {
+      for (Event event : this.getEvents()) {
+         event.assignSolution(assignedTimeslots.get(event), assignedRooms.get(event));
       }
    }
 
