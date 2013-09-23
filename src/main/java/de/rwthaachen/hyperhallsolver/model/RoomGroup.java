@@ -15,9 +15,11 @@ public class RoomGroup {
    private Map<String, Object> rawRoomGroupData;
    private Double weight;
    private Set<Room> rooms;
+   private Event event;
 
-   public RoomGroup(Map<String, Object> rawRoomGroupData, Instance instance) throws IOException {
+   public RoomGroup(Map<String, Object> rawRoomGroupData, Instance instance, Event event) throws IOException {
       this.rawRoomGroupData = rawRoomGroupData;
+      this.event = event;
 
       parseRawRoomGroupData(instance);
    }
@@ -64,6 +66,7 @@ public class RoomGroup {
       return rooms;
    }
 
-
-   
+   public Event getEvent() {
+      return event;
+   }
 }

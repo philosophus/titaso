@@ -2,7 +2,10 @@ package de.rwthaachen.hyperhallsolver.model;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,7 +56,7 @@ public class Event {
             throw new IOException("'possibleTimeslots' array of Event contains elemts which aren't JSON objects!");
          }
 
-         possibleTimeslots.add(new TimeslotGroup((Map)rawTimeslotGroupData, instance));
+         possibleTimeslots.add(new TimeslotGroup((Map)rawTimeslotGroupData, this, instance));
       }
    }
 
@@ -72,7 +75,7 @@ public class Event {
             throw new IOException("'possibleRooms' array of Event contains elemts which aren't JSON objects!");
          }
 
-         possibleRooms.add(new RoomGroup((Map)rawRoomGroupData, instance));
+         possibleRooms.add(new RoomGroup((Map)rawRoomGroupData, instance, this));
       }
    }
 
@@ -86,6 +89,22 @@ public class Event {
 
    public Set<RoomGroup> getPossibleRooms() {
       return possibleRooms;
+   }
+
+   public void assignSolution(TimeslotGroup timeslots, RoomGroup rooms) {
+      Map<String, Object> assignment = new HashMap();
+      List<String> timeslotList = new LinkedList();
+      List<String> roomList = new LinkedList();
+      for (Timeslot timeslot : timeslots.getTimeslots()) {
+         timeslotList.add(timeslot.getId());
+      }
+      for (Room room : rooms.getRooms()) {
+         roomList.add(room.getId());
+      }
+      assignment.put("timeslots", timeslotList);
+      assignment.put("rooms", roomList);
+
+      this.rawEventData.put("assignedTo", assignment);
    }
    
 }
