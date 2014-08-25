@@ -32,7 +32,7 @@ public class Main {
       solver.createVaribles();
       solver.createBoundEventOccurenceConstraints();
       solver.createStrictTimeConflictConstraints();
-      solver.createSoftTimeConflictConstraintsAndVariables();
+      //solver.createSoftTimeConflictConstraintsAndVariables();
       solver.addHyperHallSeperator();
       solver.setObjective();
 

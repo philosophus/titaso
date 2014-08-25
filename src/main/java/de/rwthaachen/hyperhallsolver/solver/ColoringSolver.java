@@ -102,7 +102,7 @@ public class ColoringSolver {
             expr.addTerm(1.0, variables.get(possibleTimeslot));
          }
          String consName = "No two appointments for Event " + event.getId();
-         GRBConstr constraint = model.addConstr(expr, GRB.GREATER_EQUAL, 1.0, consName);
+         GRBConstr constraint = model.addConstr(expr, GRB.LESS_EQUAL, 1.0, consName);
          this.boundEventOccurenceConstraints.put(event, constraint);
       }
    }
@@ -193,16 +193,17 @@ public class ColoringSolver {
 
       GRBLinExpr obj = new GRBLinExpr();
       for (Map.Entry<TimeslotGroup, GRBVar> var : variables.entrySet()) {
-         obj.addTerm(var.getKey().getWeight(), var.getValue());
+         //obj.addTerm(var.getKey().getWeight(), var.getValue());
+        obj.addTerm(1.0, var.getValue());
       }
 
-      for (Map.Entry<TimeConflict, Set<GRBVar>> vars : this.softTimeConflictVariables.entrySet()) {
-         for (GRBVar var : vars.getValue()) {
-            obj.addTerm(vars.getKey().getWeight(), var);
-         }
-      }
+//      for (Map.Entry<TimeConflict, Set<GRBVar>> vars : this.softTimeConflictVariables.entrySet()) {
+//         for (GRBVar var : vars.getValue()) {
+//            obj.addTerm(vars.getKey().getWeight(), var);
+//         }
+//      }
 
-      model.setObjective(obj, GRB.MINIMIZE);
+      model.setObjective(obj, GRB.MAXIMIZE);
       model.update();
    }
 
