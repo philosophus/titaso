@@ -57,5 +57,9 @@ public class InstanceTest extends TestCase {
       assertThat(instance.getStrictTimeConflicts().size(), is(1));
       assertThat(instance.getSoftTimeConflicts().size(), is(2));
       assertThat(instance.getTimeConflict("c1").getEvents(), hasItem(instance.getEvent("e2")));
+
+      // Check if the stable room groups are parsed correctly
+      assertThat(instance.getStableRoomGroups().size(), is(1));
+      assertThat(instance.getStableRoomGroups().iterator().next().getEvents(), hasItem(instance.getEvent("e3")));
    }
 }

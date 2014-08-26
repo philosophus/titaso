@@ -126,5 +126,10 @@
 	    "weight": 4,
 	    "events": ["e1", "e4"]
 	}
+    ],
+    "stableRoomGroups": [
+    	{
+	    "events": ["e3", "e4"]
+	}
     ]
 }

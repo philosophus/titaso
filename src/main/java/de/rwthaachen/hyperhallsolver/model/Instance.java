@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Vector;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -23,6 +24,7 @@ public class Instance {
    private Map<String, Timeslot> timeslots;
    private Map<String, TimeConflict> strictTimeConflicts;
    private Map<String, TimeConflict> softTimeConflicts;
+   private Vector<StableRoomGroup> stableRoomGroups;
 
 //   private Map<Event, TimeConflict> conflictsOfEvent;
    public Instance(Map<String, Object> rawInstanceData) throws IOException {
@@ -64,6 +66,7 @@ public class Instance {
       parsePossibleTimeslots();
       parsePossibleRooms();
       parseConflicts();
+      parseStableRoomGroups();
    }
 
    private void parseRawEvents() throws IOException {
@@ -165,6 +168,22 @@ public class Instance {
       }
    }
 
+   private void parseStableRoomGroups() throws IOException {
+      stableRoomGroups = new Vector();
+      if (rawInstanceData.get("stableRoomGroups") == null) {
+         return; // no stable room groups
+      }
+      if (!(rawInstanceData.get("stableRoomGroups") instanceof Collection)) {
+         throw new IOException("Field 'stableRoomGroups' must be an Array!");
+      }
+      for (Object rawStableRoomGroup : (Collection) rawInstanceData.get("stableRoomGroups")) {
+         if (!(rawStableRoomGroup instanceof Map)) {
+            throw new IOException("'stableRoomGroups' array contains elements which aren't JSON objects!");
+         }
+         stableRoomGroups.add(new StableRoomGroup((Map) rawStableRoomGroup, this));
+      }
+   }
+
    public void assignSolution(Map<Event, TimeslotGroup> assignedTimeslots, Map<Event, RoomGroup> assignedRooms) {
       for (Event event : this.getEvents()) {
          event.assignSolution(assignedTimeslots.get(event), assignedRooms.get(event));
@@ -224,6 +243,10 @@ public class Instance {
          result = getSoftTimeConflict(id);
       }
       return result;
+   }
+
+   public Collection<StableRoomGroup> getStableRoomGroups() {
+      return stableRoomGroups;
    }
 
    static public Instance createRandom() {
