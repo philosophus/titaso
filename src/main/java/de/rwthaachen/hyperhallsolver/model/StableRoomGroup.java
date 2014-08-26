@@ -2,6 +2,7 @@ package de.rwthaachen.hyperhallsolver.model;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
@@ -23,6 +24,19 @@ public class StableRoomGroup {
 
    public Vector<Event> getEvents() {
       return events;
+   }
+
+   public String getId() {
+      StringBuilder sb = new StringBuilder();
+      Iterator<Event> eventIter = events.iterator();
+      while (eventIter.hasNext()) {
+         Event event = eventIter.next();
+         sb.append(event.getId());
+         if (eventIter.hasNext()) {
+            sb.append(", ");
+         }
+      }
+      return sb.toString();
    }
 
 

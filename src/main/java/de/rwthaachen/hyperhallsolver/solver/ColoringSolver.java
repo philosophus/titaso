@@ -2,6 +2,7 @@ package de.rwthaachen.hyperhallsolver.solver;
 
 import de.rwthaachen.hyperhallsolver.model.Event;
 import de.rwthaachen.hyperhallsolver.model.Instance;
+import de.rwthaachen.hyperhallsolver.model.StableRoomGroup;
 import de.rwthaachen.hyperhallsolver.model.TimeConflict;
 import de.rwthaachen.hyperhallsolver.model.Timeslot;
 import de.rwthaachen.hyperhallsolver.model.TimeslotGroup;
@@ -12,6 +13,7 @@ import gurobi.GRBException;
 import gurobi.GRBLinExpr;
 import gurobi.GRBModel;
 import gurobi.GRBVar;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -107,7 +109,7 @@ public class ColoringSolver {
       }
    }
 
-   private Set<Set<TimeslotGroup>> getCollidingTimeslots(Set<Event> events) {
+   private Set<Set<TimeslotGroup>> getCollidingTimeslots(Collection<Event> events) {
       Set<Set<TimeslotGroup>> collidingTimeslots = new HashSet();
       for (Timeslot timeslot : instance.getTimeslots()) {
          Set<TimeslotGroup> conflictGroup = new HashSet();
@@ -147,6 +149,24 @@ public class ColoringSolver {
             conss.add(cons);
          }
          this.strictTimeConflictConstraints.put(timeConflict, conss);
+      }
+
+      // there is an implicit strict constraint for all stableRoomGroups
+      for (StableRoomGroup srg : instance.getStableRoomGroups()) {
+         Set<Set<TimeslotGroup>> collidingTimeslots = getCollidingTimeslots(srg.getEvents());
+
+         // Create the conflicts
+         int i = 0;
+         Set<GRBConstr> conss = new HashSet();
+         for (Set<TimeslotGroup> conflictGroup : collidingTimeslots) {
+            ++i;
+            GRBLinExpr expr = new GRBLinExpr();
+            for (TimeslotGroup timeslotGroup : conflictGroup) {
+               expr.addTerm(1.0, variables.get(timeslotGroup));
+            }
+            GRBConstr cons = model.addConstr(expr, GRB.LESS_EQUAL, 1.0, "Implicit conflict for stable room group" + srg.getId() + ", constraint number " + i);
+            conss.add(cons);
+         }
       }
    }
 
