@@ -31,6 +31,15 @@ public class Event {
       parseRawEventData();
    }
 
+   public Event(String id, Collection possibleTimeslots, Collection possibleRooms) {
+      this.id = id;
+      this.possibleTimeslots = null; // TODO
+      this.possibleRooms = new HashSet();
+      for (Object rooms : possibleRooms) {
+         this.possibleRooms.add(new RoomGroup(this, (Collection<Room>) rooms));
+      }
+   }
+
    private void parseRawEventData() throws IOException {
       if (rawEventData.get("id") == null) {
          throw new IOException("Event does not contain 'id' field!");

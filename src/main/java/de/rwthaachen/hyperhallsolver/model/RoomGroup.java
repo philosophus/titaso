@@ -24,6 +24,12 @@ public class RoomGroup {
       parseRawRoomGroupData(instance);
    }
 
+   public RoomGroup(Event event, Collection<Room> rooms) {
+      this.rooms = new HashSet(rooms);
+      this.event = event;
+      this.weight = 0.0;
+   }
+
    private void parseRawRoomGroupData(Instance instance) throws IOException {
       // Parse weight
       if (rawRoomGroupData.get("weight") == null) {

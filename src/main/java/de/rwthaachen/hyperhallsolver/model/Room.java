@@ -13,6 +13,10 @@ public class Room {
 
    private String id;
 
+   public Room(String id) {
+      this.id = id;
+   }
+
    public Room(Map<String, Object> rawRoomData) throws IOException {
       if (rawRoomData == null) {
          throw new IOException("Room object is empty");
