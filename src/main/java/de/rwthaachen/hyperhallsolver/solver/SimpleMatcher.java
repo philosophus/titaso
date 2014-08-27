@@ -1,9 +1,11 @@
 package de.rwthaachen.hyperhallsolver.solver;
 
 import de.rwthaachen.hyperhallsolver.model.Event;
+import de.rwthaachen.hyperhallsolver.model.EventGroup;
 import de.rwthaachen.hyperhallsolver.model.Instance;
 import de.rwthaachen.hyperhallsolver.model.Room;
 import de.rwthaachen.hyperhallsolver.model.RoomGroup;
+import de.rwthaachen.hyperhallsolver.model.StableRoomGroup;
 import de.rwthaachen.hyperhallsolver.model.Timeslot;
 import de.rwthaachen.hyperhallsolver.model.TimeslotGroup;
 import gurobi.GRB;
@@ -17,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 /**
  *
@@ -33,6 +36,7 @@ public class SimpleMatcher {
    private Map<Event, GRBConstr> shallBeMatchedConstrains;
    private Map<Event, GRBVar> shallBeMatchedVariables;
    private Map<Room, Map<Timeslot, GRBConstr>> roomConflicts;
+   public Vector<EventGroup> eventGroups;
 
    public SimpleMatcher(Instance instance, Map<Event, TimeslotGroup> assignedTimeslots) {
       this.instance = instance;
@@ -156,8 +160,22 @@ public class SimpleMatcher {
       model.optimize();
    }
 
+   public void groupEvents() {
+      this.eventGroups = new Vector();
+      Set<Event> events = new HashSet(instance.getEvents());
+      for (StableRoomGroup srg : instance.getStableRoomGroups()) {
+         EventGroup eg = new EventGroup(srg.getEvents());
+         this.eventGroups.add(eg);
+         events.removeAll(eg.events);
+      }
+      for (Event e : events) {
+         this.eventGroups.add(new EventGroup(e));
+      }
+   }
+
    public void setUpAndCreateModel(GRBEnv env) throws GRBException {
       setUp(env);
+      groupEvents();
       createVariables();
       createShallBeMatchedConstraintsAndVariables();
       createRoomConflictConstraints();

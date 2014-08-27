@@ -73,18 +73,19 @@ public class SimpleMatcherTest {
    public void testSimpleMatcher() throws GRBException {
       SimpleMatcher matcher = new SimpleMatcher(instance, assignedTimeslots);
 
-      matcher.setUp(new GRBEnv());
-
-      matcher.createVariables();
-
-      matcher.createShallBeMatchedConstraintsAndVariables();
-
-      matcher.createRoomConflictConstraints();
-
-      matcher.setObjective();
+      matcher.setUpAndCreateModel(new GRBEnv());
 
       matcher.solve();
 
       assertThat(matcher.getUnmatchedEvents().size(), is(1));
+   }
+
+   @Test
+   public void testGroupEvents() {
+      SimpleMatcher matcher = new SimpleMatcher(instance, assignedTimeslots);
+
+      matcher.groupEvents();
+
+      assertThat(matcher.eventGroups.size(), is(3));
    }
 }
