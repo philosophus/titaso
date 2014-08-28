@@ -152,22 +152,22 @@ public class ColoringSolver {
       }
 
       // there is an implicit strict constraint for all stableRoomGroups
-//      for (StableRoomGroup srg : instance.getStableRoomGroups()) {
-//         Set<Set<TimeslotGroup>> collidingTimeslots = getCollidingTimeslots(srg.getEvents());
-//
-//         // Create the conflicts
-//         int i = 0;
-//         Set<GRBConstr> conss = new HashSet();
-//         for (Set<TimeslotGroup> conflictGroup : collidingTimeslots) {
-//            ++i;
-//            GRBLinExpr expr = new GRBLinExpr();
-//            for (TimeslotGroup timeslotGroup : conflictGroup) {
-//               expr.addTerm(1.0, variables.get(timeslotGroup));
-//            }
-//            GRBConstr cons = model.addConstr(expr, GRB.LESS_EQUAL, 1.0, "Implicit conflict for stable room group" + srg.getId() + ", constraint number " + i);
-//            conss.add(cons);
-//         }
-//      }
+      for (StableRoomGroup srg : instance.getStableRoomGroups()) {
+         Set<Set<TimeslotGroup>> collidingTimeslots = getCollidingTimeslots(srg.getEvents());
+
+         // Create the conflicts
+         int i = 0;
+         Set<GRBConstr> conss = new HashSet();
+         for (Set<TimeslotGroup> conflictGroup : collidingTimeslots) {
+            ++i;
+            GRBLinExpr expr = new GRBLinExpr();
+            for (TimeslotGroup timeslotGroup : conflictGroup) {
+               expr.addTerm(1.0, variables.get(timeslotGroup));
+            }
+            GRBConstr cons = model.addConstr(expr, GRB.LESS_EQUAL, 1.0, "Implicit conflict for stable room group" + srg.getId() + ", constraint number " + i);
+            conss.add(cons);
+         }
+      }
    }
 
    public void createSoftTimeConflictConstraintsAndVariables() throws GRBException {

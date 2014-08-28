@@ -4,6 +4,7 @@ import de.rwthaachen.hyperhallsolver.model.Event;
 import de.rwthaachen.hyperhallsolver.model.Instance;
 import de.rwthaachen.hyperhallsolver.model.Room;
 import de.rwthaachen.hyperhallsolver.model.RoomGroup;
+import de.rwthaachen.hyperhallsolver.model.StableRoomGroup;
 import de.rwthaachen.hyperhallsolver.model.Timeslot;
 import de.rwthaachen.hyperhallsolver.model.TimeslotGroup;
 import gurobi.GRB;
@@ -13,15 +14,20 @@ import gurobi.GRBException;
 import gurobi.GRBLinExpr;
 import gurobi.GRBModel;
 import gurobi.GRBVar;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  *
@@ -69,11 +75,72 @@ public class HyperHallSeperator extends GRBCallback {
       matcher.setUpAndCreateModel(new GRBEnv());
       matcher.solve();
       Set<Event> unmatchedEvents = matcher.getUnmatchedEvents();
+      Map<Event, RoomGroup> solution = matcher.getSolution();
 
+      // Set up graph for connected components search
+      ConnectedComponents cc = new ConnectedComponents();
+      // Add vertices
+      cc.addVertices(this.instance.getEvents());
+      for (Room r : this.instance.getRooms()) {
+         for (Timeslot t : this.instance.getTimeslots()) {
+            Pair<Room, Timeslot> roomTime = new ImmutablePair(r, t);
+            cc.addVertex(roomTime);
+         }
+      }
+      // Add edges
+      for (Map.Entry<Event, RoomGroup> solutionElt : solution.entrySet()) {
+         for (Room room : solutionElt.getValue().getRooms()) {
+            for (Timeslot timeslot : assignedTimeslots.get(solutionElt.getKey()).getTimeslots()) {
+               Pair<Room, Timeslot> roomTime = new ImmutablePair(room, timeslot);
+               cc.addEdge(solutionElt.getKey(), roomTime);
+            }
+         }
+      }
+      for (Event e : solution.keySet()) {
+         for (RoomGroup rg : e.getPossibleRooms()) {
+            for (Room r : rg.getRooms()) {
+               for (Timeslot t : assignedTimeslots.get(e).getTimeslots()) {
+                  Pair<Room, Timeslot> roomTime = new ImmutablePair(r, t);
+                  cc.addEdge(roomTime, e);
+               }
+            }
+         }
+      }
+      for (Event e : unmatchedEvents) {
+         for (RoomGroup rg : e.getPossibleRooms()) {
+            for (Room r : rg.getRooms()) {
+               for (Timeslot t : assignedTimeslots.get(e).getTimeslots()) {
+                  Pair<Room, Timeslot> roomTime = new ImmutablePair(r, t);
+                  cc.addEdge(e, roomTime);
+               }
+            }
+         }
+      }
+      for (StableRoomGroup srg : this.instance.getStableRoomGroups()) {
+         Iterator<Event> eventIter = srg.getEvents().iterator();
+         Event current = eventIter.next();
+         while (eventIter.hasNext()) {
+            Event last = current;
+            current = eventIter.next();
+            cc.addEdge(last, current);
+            cc.addEdge(current, last);
+         }
+      }
+
+      // Find connected components and create constraints
       while (!unmatchedEvents.isEmpty()) {
          Event anyEvent = unmatchedEvents.iterator().next();
+
+         List<Object> component = cc.getConnectedComponent(anyEvent);
+         List<TimeslotGroup> connectedTimeslots = new ArrayList();
+         for (Object o : component) {
+            if (o instanceof Event) {
+               connectedTimeslots.add(assignedTimeslots.get((Event) o));
+            }
+         }
+
 //         Set<TimeslotGroup> connectedTimeslots = getConnectedTimeslots(assignedTimeslots.get(anyEvent), assignedTimeslots.values());
-         Set<TimeslotGroup> connectedTimeslots = getConnectedTimeslots(anyEvent, assignedTimeslots, matcher.getSolution());
+//         Set<TimeslotGroup> connectedTimeslots = getConnectedTimeslots(anyEvent, assignedTimeslots, matcher.getSolution());
          // remove unmatched events in the connected component
          int removedEvents = 0;
          for (TimeslotGroup assignedTimeslot : connectedTimeslots) {

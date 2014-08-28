@@ -65,7 +65,7 @@ public class SimpleMatcher {
 
    public void setUp(GRBEnv env) throws GRBException {
       this.env = env;
-      env.set(GRB.IntParam.OutputFlag, 1);
+      env.set(GRB.IntParam.OutputFlag, 0);
       model = new GRBModel(env);
    }
 
