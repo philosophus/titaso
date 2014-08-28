@@ -23,6 +23,19 @@ public class EventGroup {
       this.events.add(event);
    }
 
+   public String getId() {
+      StringBuilder sb = new StringBuilder();
+      Iterator<Event> eventIter = events.iterator();
+      while (eventIter.hasNext()) {
+         Event event = eventIter.next();
+         sb.append(event.getId());
+         if (eventIter.hasNext()) {
+            sb.append(", ");
+         }
+      }
+      return sb.toString();
+   }
+
    public Set<List<Room>> getPossibleRoomGroups() {
       assert (this.events != null);
       assert (this.events.size() > 0);
@@ -45,5 +58,5 @@ public class EventGroup {
    }
 
    public Vector<Event> events;
-
+   public List<EventsRoomsEdge> eventsRoomsEdges = new ArrayList();
 }

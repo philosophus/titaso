@@ -59,7 +59,7 @@ public class SimpleMatcherTest {
          }
       }
       for (TimeslotGroup possibleTimeslot: instance.getEvent("e4").getPossibleTimeslots()) {
-         if (possibleTimeslot.getWeight() == 2.0) {
+         if (possibleTimeslot.getWeight() == 3.0) {
             assignedTimeslots.put(instance.getEvent("e4"), possibleTimeslot);
          }
       }

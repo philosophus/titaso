@@ -2,6 +2,7 @@ package de.rwthaachen.hyperhallsolver.solver;
 
 import de.rwthaachen.hyperhallsolver.model.Event;
 import de.rwthaachen.hyperhallsolver.model.EventGroup;
+import de.rwthaachen.hyperhallsolver.model.EventsRoomsEdge;
 import de.rwthaachen.hyperhallsolver.model.Instance;
 import de.rwthaachen.hyperhallsolver.model.Room;
 import de.rwthaachen.hyperhallsolver.model.RoomGroup;
@@ -15,11 +16,13 @@ import gurobi.GRBException;
 import gurobi.GRBLinExpr;
 import gurobi.GRBModel;
 import gurobi.GRBVar;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  *
@@ -29,39 +32,40 @@ public class SimpleMatcher {
 
    private Instance instance;
    private Map<Event, TimeslotGroup> assignedTimeslots;
-   private Map<Timeslot, Set<TimeslotGroup>> assignedTimeslotsAt;
+   private Map<Timeslot, List<EventGroup>> assignedAtTimeslot;
    private GRBEnv env;
    private GRBModel model;
-   private Map<RoomGroup, GRBVar> variables;
-   private Map<Event, GRBConstr> shallBeMatchedConstrains;
-   private Map<Event, GRBVar> shallBeMatchedVariables;
+   private Map<EventsRoomsEdge, GRBVar> variables;
+   private Map<EventGroup, GRBConstr> eventMatchingConstaints;
    private Map<Room, Map<Timeslot, GRBConstr>> roomConflicts;
-   public Vector<EventGroup> eventGroups;
+   public  List<EventGroup> eventGroups;
 
    public SimpleMatcher(Instance instance, Map<Event, TimeslotGroup> assignedTimeslots) {
       this.instance = instance;
       this.assignedTimeslots = assignedTimeslots;
-
-      calculateAssignedTimeslotsAt();
    }
 
    private void calculateAssignedTimeslotsAt() {
       assert (assignedTimeslots != null);
 
-      assignedTimeslotsAt = new HashMap();
-      for (TimeslotGroup possibleTimeslot : assignedTimeslots.values()) {
-         for (Timeslot timeslot : possibleTimeslot.getTimeslots()) {
-            if (!assignedTimeslotsAt.containsKey(timeslot)) {
-               assignedTimeslotsAt.put(timeslot, new HashSet());
+      this.assignedAtTimeslot = new HashMap();
+      for (EventGroup eg: this.eventGroups) {
+         for (Event e: eg.events) {
+            if (this.assignedTimeslots.containsKey(e)) {   // Making sure the event was assigned in the coloring problem
+               for (Timeslot t: this.assignedTimeslots.get(e).getTimeslots()) {
+                  if (!assignedAtTimeslot.containsKey(t)) {
+                     assignedAtTimeslot.put(t, new ArrayList());
+                  }
+                  assignedAtTimeslot.get(t).add(eg);
+               }
             }
-            assignedTimeslotsAt.get(timeslot).add(possibleTimeslot);
          }
       }
    }
 
    public void setUp(GRBEnv env) throws GRBException {
       this.env = env;
-      env.set(GRB.IntParam.OutputFlag, 0);
+      env.set(GRB.IntParam.OutputFlag, 1);
       model = new GRBModel(env);
    }
 
@@ -70,44 +74,32 @@ public class SimpleMatcher {
       assert (model != null);
 
       variables = new HashMap();
-      for (Event event : instance.getEvents()) {
-         for (RoomGroup possibleRooms : event.getPossibleRooms()) {
-            String varName = "Event " + event.getId() + " in rooms";
-            for (Room room : possibleRooms.getRooms()) {
-               varName += " " + room.getId();
-            }
-            GRBVar var = model.addVar(0.0, 1.0, 0.0, GRB.BINARY, varName);
-
-            variables.put(possibleRooms, var);
+      for (EventGroup eventGroup : this.eventGroups) {
+         for (List<Room> possibleRooms : eventGroup.getPossibleRoomGroups()) {
+            EventsRoomsEdge ere = new EventsRoomsEdge(eventGroup, possibleRooms);
+            GRBVar var = model.addVar(0.0, 1.0, 0.0, GRB.BINARY, ere.getId());
+            eventGroup.eventsRoomsEdges.add(ere);
+            variables.put(ere, var);
          }
       }
 
       model.update();
    }
 
-   public void createShallBeMatchedConstraintsAndVariables() throws GRBException {
+   public void createEventMatchingConstraints() throws GRBException {
       assert (env != null);
       assert (model != null);
       assert (variables != null);
 
-      this.shallBeMatchedVariables = new HashMap();
-      this.shallBeMatchedConstrains = new HashMap();
-      for (Event event : instance.getEvents()) {
-         // create variable taking value 1 if the event is not assigned
-         String varName = "Event " + event.getId() + " was not assigned";
-         GRBVar var = model.addVar(0.0, 1.0, 0.0, GRB.BINARY, varName);
-         this.shallBeMatchedVariables.put(event, var);
-      }
-      model.update();
-      for (Event event : instance.getEvents()) {
-         String consName = "Assign Event " + event.getId() + " if possible";
+      this.eventMatchingConstaints = new HashMap();
+      for (EventGroup eventGroup : this.eventGroups) {
+         String consName = "Assign Events " + eventGroup.getId() + " at most onece";
          GRBLinExpr expr = new GRBLinExpr();
-         expr.addTerm(1.0, this.shallBeMatchedVariables.get(event));
-         for (RoomGroup possibleRooms : event.getPossibleRooms()) {
-            expr.addTerm(1.0, variables.get(possibleRooms));
+         for (EventsRoomsEdge ere : eventGroup.eventsRoomsEdges) {
+            expr.addTerm(1.0, variables.get(ere));
          }
-         GRBConstr cons = model.addConstr(expr, GRB.GREATER_EQUAL, 1.0, consName);
-         this.shallBeMatchedConstrains.put(event, cons);
+         GRBConstr cons = model.addConstr(expr, GRB.LESS_EQUAL, 1.0, consName);
+         this.eventMatchingConstaints.put(eventGroup, cons);
       }
    }
 
@@ -124,11 +116,11 @@ public class SimpleMatcher {
 
             GRBLinExpr expr = new GRBLinExpr();
             // ToDo: Check if this is not too inefficient
-            if (assignedTimeslotsAt.containsKey(timeslot)) {
-               for (TimeslotGroup assignedTimeslot : assignedTimeslotsAt.get(timeslot)) {
-                  for (RoomGroup possibleRooms : assignedTimeslot.getEvent().getPossibleRooms()) {
-                     if (possibleRooms.getRooms().contains(room)) {
-                        expr.addTerm(1.0, variables.get(possibleRooms));
+            if (this.assignedAtTimeslot.containsKey(timeslot)) {
+               for (EventGroup eg : this.assignedAtTimeslot.get(timeslot)) {
+                  for (EventsRoomsEdge ere: eg.eventsRoomsEdges) {
+                     if (ere.getRooms().contains(room)) {
+                        expr.addTerm(1.0, variables.get(ere));
                      }
                   }
                }
@@ -145,10 +137,10 @@ public class SimpleMatcher {
       assert (variables != null);
 
       GRBLinExpr obj = new GRBLinExpr();
-      for (GRBVar var : this.shallBeMatchedVariables.values()) {
+      for (GRBVar var : this.variables.values()) {
          obj.addTerm(1.0, var);
       }
-      model.setObjective(obj, GRB.MINIMIZE);
+      model.setObjective(obj, GRB.MAXIMIZE);
       model.update();
    }
 
@@ -161,7 +153,7 @@ public class SimpleMatcher {
    }
 
    public void groupEvents() {
-      this.eventGroups = new Vector();
+      this.eventGroups = new ArrayList();
       Set<Event> events = new HashSet(instance.getEvents());
       for (StableRoomGroup srg : instance.getStableRoomGroups()) {
          EventGroup eg = new EventGroup(srg.getEvents());
@@ -176,8 +168,9 @@ public class SimpleMatcher {
    public void setUpAndCreateModel(GRBEnv env) throws GRBException {
       setUp(env);
       groupEvents();
+      calculateAssignedTimeslotsAt();
       createVariables();
-      createShallBeMatchedConstraintsAndVariables();
+      createEventMatchingConstraints();
       createRoomConflictConstraints();
       setObjective();
    }
@@ -187,10 +180,12 @@ public class SimpleMatcher {
       assert (model != null);
       assert (variables != null);
 
-      Set<Event> unmatchedEvents = new HashSet();
-      for (Map.Entry<Event, GRBVar> possiblyUnmatched : this.shallBeMatchedVariables.entrySet()) {
-         if (possiblyUnmatched.getValue().get(GRB.DoubleAttr.X) > 0.0) {
-            unmatchedEvents.add(possiblyUnmatched.getKey());
+      Set<Event> unmatchedEvents = new HashSet(this.instance.getEvents());
+      for (Map.Entry<EventsRoomsEdge, GRBVar> variable : this.variables.entrySet()) {
+         if (variable.getValue().get(GRB.DoubleAttr.X) > 0.5) {
+            for (Event e : variable.getKey().getEventGroup().events) {
+               unmatchedEvents.remove(e);
+            }
          }
       }
 
@@ -203,10 +198,14 @@ public class SimpleMatcher {
       assert (variables != null);
 
       Map<Event, RoomGroup> solution = new HashMap();
-      for (Event event : instance.getEvents()) {
-         for (RoomGroup possibleRooms : event.getPossibleRooms()) {
-            if (variables.get(possibleRooms).get(GRB.DoubleAttr.X) > 0.5) {
-               solution.put(event, possibleRooms);
+      for (Map.Entry<EventsRoomsEdge, GRBVar> variable : this.variables.entrySet()) {
+         if (variable.getValue().get(GRB.DoubleAttr.X) > 0.5) {
+            for (Event e : variable.getKey().getEventGroup().events) {
+               for (RoomGroup rg : e.getPossibleRooms()) {
+                  if (CollectionUtils.isEqualCollection(rg.getRooms(), variable.getKey().getRooms())) {
+                     solution.put(e, rg);
+                  }
+               }
             }
          }
       }
