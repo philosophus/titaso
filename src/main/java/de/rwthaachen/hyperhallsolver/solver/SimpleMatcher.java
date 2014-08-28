@@ -201,9 +201,11 @@ public class SimpleMatcher {
       for (Map.Entry<EventsRoomsEdge, GRBVar> variable : this.variables.entrySet()) {
          if (variable.getValue().get(GRB.DoubleAttr.X) > 0.5) {
             for (Event e : variable.getKey().getEventGroup().events) {
-               for (RoomGroup rg : e.getPossibleRooms()) {
-                  if (CollectionUtils.isEqualCollection(rg.getRooms(), variable.getKey().getRooms())) {
-                     solution.put(e, rg);
+               if (this.assignedTimeslots.containsKey(e)) { // Make sure the event is actually used
+                  for (RoomGroup rg : e.getPossibleRooms()) {
+                     if (CollectionUtils.isEqualCollection(rg.getRooms(), variable.getKey().getRooms())) {
+                        solution.put(e, rg);
+                     }
                   }
                }
             }
