@@ -34,7 +34,7 @@ public class ColoringSolver {
    private Map<TimeConflict, Set<GRBConstr>> strictTimeConflictConstraints;
    private Map<TimeConflict, Set<GRBConstr>> softTimeConflictConstraints;
    private Map<TimeConflict, Set<GRBVar>> softTimeConflictVariables;
-   private HyperHallSeperator hyperHallSeperator;
+   private HyperHallSeparator hyperHallSeperator;
 
    public ColoringSolver(Instance instance) {
       this.instance = instance;
@@ -228,7 +228,7 @@ public class ColoringSolver {
    }
 
    public void addHyperHallSeperator() {
-      hyperHallSeperator = new HyperHallSeperator(env, model, instance, variables);
+      hyperHallSeperator = new HyperHallSeparator(env, model, instance, variables);
       model.setCallback(hyperHallSeperator);
    }
 
@@ -237,7 +237,12 @@ public class ColoringSolver {
       assert (model != null);
       assert (variables != null);
 
+      long startTime = System.nanoTime();
+
       model.optimize();
+
+      System.out.println("Total time spend for optimization: " + ((double)(System.nanoTime() - startTime) / 1E9));
+      System.out.println("Total time spend in Separator: " + ((double)(HyperHallSeparator.getTimeSpend()) / 1E9));
    }
 
    public Map<Event, TimeslotGroup> getSolution() throws GRBException {

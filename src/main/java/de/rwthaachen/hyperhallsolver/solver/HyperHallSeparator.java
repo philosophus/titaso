@@ -33,14 +33,16 @@ import org.apache.commons.lang3.tuple.Pair;
  *
  * @author Florian Dahms <dahms@or.rwth-aachen.de>
  */
-public class HyperHallSeperator extends GRBCallback {
+public class HyperHallSeparator extends GRBCallback {
+
+   private static long timeSpend = 0;
 
    private GRBEnv env;
    private GRBModel model;
    private Map<TimeslotGroup, GRBVar> variables;
    private Instance instance;
 
-   public HyperHallSeperator(GRBEnv env, GRBModel model, Instance instance, Map<TimeslotGroup, GRBVar> variables) {
+   public HyperHallSeparator(GRBEnv env, GRBModel model, Instance instance, Map<TimeslotGroup, GRBVar> variables) {
       this.env = env;
       this.model = model;
       this.instance = instance;
@@ -56,12 +58,13 @@ public class HyperHallSeperator extends GRBCallback {
             optimallySeperateIntegralSolution();
          } catch (GRBException ex) {
             ex.printStackTrace();
-            Logger.getLogger(HyperHallSeperator.class.getName()).log(Level.SEVERE, ex.getLocalizedMessage(), ex);
+            Logger.getLogger(HyperHallSeparator.class.getName()).log(Level.SEVERE, ex.getLocalizedMessage(), ex);
          }
       }
    }
 
    private void optimallySeperateIntegralSolution() throws GRBException {
+      long startTime = System.nanoTime();
       // retrieve current solution
       Map<Event, TimeslotGroup> assignedTimeslots = new HashMap();
       for (Map.Entry<TimeslotGroup, GRBVar> variable : variables.entrySet()) {
@@ -156,8 +159,13 @@ public class HyperHallSeperator extends GRBCallback {
             expr.addTerm(1.0, variables.get(assignedTimeslot));
          }
          addLazy(expr, GRB.LESS_EQUAL, connectedTimeslots.size() - removedEvents);
-         System.out.println("Created lazy constraint");
+         //System.out.println("Created lazy constraint");
       }
 
+      HyperHallSeparator.timeSpend += System.nanoTime() - startTime;
+   }
+
+   public static long getTimeSpend() {
+      return timeSpend;
    }
 }
